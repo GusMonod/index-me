@@ -1,5 +1,5 @@
-#ifndef TOKEN_H_
-#define TOKEN_H_
+#ifndef CONSTRUCT_TOKEN_H_
+#define CONSTRUCT_TOKEN_H_
 
 #include "util/types.h"
 #include "util/uthash.h"
@@ -27,4 +27,4 @@ Token* addToken(Token* vocabulary, wchar_t* tokenName, unsigned int docId);
 // CAUTION: does NOT remove the token pointer from vocabulary, you MUST do it!
 void deleteToken(Token* t);
 
-#endif  // TOKEN_H_
+#endif  // CONSTRUCT_TOKEN_H_

@@ -20,8 +20,8 @@ fi
 cd $Directory
 
 # Removing old values
-rm *.REAL
-rm *.DIFF
+rm -f *.REAL
+rm -f *.DIFF
 
 if [ -r "description" ]
 then
