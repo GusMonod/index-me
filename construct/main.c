@@ -43,7 +43,7 @@ int main() {
   Token* t = NULL;
   Token* tmp = NULL;
   HASH_ITER(hh, vocabulary, t, tmp) {
-    fprintToken(output, t);
+    fprintToken(output, t, false);
 
     HASH_DEL(vocabulary, t);
     freeToken(t);

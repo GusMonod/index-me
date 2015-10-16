@@ -1,9 +1,17 @@
+#include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <wchar.h>
 
 #include "token.h"
 
 #include "util/uthash.h"
+
+// Number of documents handled
+static unsigned int documentsCountInCorpus = 0;
+
+// Array associating each document id with its word count
+static unsigned int* wordCountByDocumentId;
 
 // Initial size of the posting list array
 static const unsigned int kInitialPostingListSize = 5;
@@ -11,21 +19,73 @@ static const unsigned int kInitialPostingListSize = 5;
 // By how much the size is multiplied when reallocating posting list
 static const unsigned int kSizeAugmentFactor = 2;
 
+// Returns the idf (inverse document frequency) of a Token
+static double inverseDocumentFrequency(const Token* term) {
+  return log10((double) documentsCountInCorpus / term->listLength);
+}
+
+// Returns the tf (term frequency) in a document of a Token
+static double termFrequency(const Token* term, unsigned int documentId) {
+  double occurencesInDocument = 0;
+  unsigned int i;
+  for (i = 0; i < term->listLength; ++i) {
+    if (term->postingList[i].docId == documentId) {
+      occurencesInDocument = (double) term->postingList[i].occurrences;
+    }
+  }
+
+  if (documentId < documentsCountInCorpus) {
+    return occurencesInDocument/(double) wordCountByDocumentId[documentId];
+  } else {
+    return 0;
+  }
+}
+
+// Adds one to the occurence number in the wordCountByDocumentId table.
+// Returns true if there was no error, false otherwise.
+static bool addOccurrence(unsigned int docId) {
+  if (docId + 1 > documentsCountInCorpus) {
+    documentsCountInCorpus = docId + 1;
+    wordCountByDocumentId = (unsigned int*) realloc(wordCountByDocumentId,
+                                                    documentsCountInCorpus
+                                                    * sizeof(unsigned int));
+    if (!wordCountByDocumentId) return false;
+    wordCountByDocumentId[docId] = 0;
+  }
+  wordCountByDocumentId[docId]++;
+  return true;
+}
+
 // See token.h
-void fprintToken(FILE* output, const Token* t) {
-  fprintf(output, "%ls: %u", t->name, t->docIds[0]);
-  for (unsigned int i = 1; i < t->length; ++i) {
-    fprintf(output, ", %u", t->docIds[i]);
+void fprintToken(FILE* output, const Token* t, bool printFrequencies) {
+  fprintf(output, "%ls: ", t->name);
+  if (printFrequencies) {
+    fprintf(output, "idf=%f, in docs: %u (tf = %f)",
+            inverseDocumentFrequency(t),
+            t->postingList[0].docId,
+            termFrequency(t, t->postingList[0].docId));
+    for (unsigned int i = 1; i < t->listLength; ++i) {
+      fprintf(output, ", %u(tf = %f)",
+              t->postingList[i].docId,
+              termFrequency(t, t->postingList[i].docId));
+    }
+  } else {
+    fprintf(output, "%u", t->postingList[0].docId);
+    for (unsigned int i = 1; i < t->listLength; ++i) {
+      fprintf(output, ", %u", t->postingList[i].docId);
+    }
   }
   fprintf(output, "\n");
 }
 
 // See token.h
 Token* addToken(Token* vocabulary, wchar_t* tokenName, unsigned int docId) {
+  if (!addOccurrence(docId)) return NULL;
+
   Token* token = NULL;
 
   HASH_FIND(hh, vocabulary, tokenName,
-        wcslen(tokenName) * sizeof(wchar_t), token);
+            wcslen(tokenName) * sizeof(wchar_t), token);
   if (!token) {
     // Not found: create Token structure, populate it and add it to vocabulary
     token = (Token*) malloc(sizeof(Token));
@@ -35,25 +95,43 @@ Token* addToken(Token* vocabulary, wchar_t* tokenName, unsigned int docId) {
     if (!token->name) return NULL;
     token->name = wcscpy(token->name, tokenName);
 
-    token->docIds = (unsigned int*) malloc(sizeof(unsigned int)
-                    * kInitialPostingListSize);
-    if (!token->docIds) return NULL;
+    token->postingList = (PostingListEntry*) malloc(sizeof(PostingListEntry)
+                                                    * kInitialPostingListSize);
+    if (!token->postingList) return NULL;
 
-    token->length = 1;
+    token->listLength = 1;
     token->listSize = kInitialPostingListSize;
-    token->docIds[0] = docId;
+    token->postingList[0].docId = docId;
+    token->postingList[0].occurrences = 1;
 
     // Add it to the hash map
     HASH_ADD_KEYPTR(hh, vocabulary, token->name,
-            wcslen(token->name) * sizeof(wchar_t), token);
-  } else if (docId != token->docIds[token->length - 1]) {
+                    wcslen(token->name) * sizeof(wchar_t), token);
+  } else {
     // Found and not duplicate: just adding the docId to the list
-    if (token->length >= token->listSize) {
+    if (token->listLength >= token->listSize) {
       token->listSize *= kSizeAugmentFactor;
-      token->docIds = (unsigned int*) realloc(token->docIds, token->listSize);
-      if (!token->docIds) return NULL;
+      token->postingList = (PostingListEntry*)
+                           realloc(token->postingList, token->listSize
+                                   * sizeof(PostingListEntry));
+      if (!token->postingList) return NULL;
     }
-    token->docIds[token->length++] = docId;  // Adding the docId to the list
+
+    unsigned int docIdFound;
+    // If the document id is in the posting list, just increment occurrences
+    for (docIdFound = 0; docIdFound < token->listLength; ++docIdFound) {
+      if (token->postingList[docIdFound].docId == docId){
+        token->postingList[docIdFound].occurrences++;
+        break;
+      }
+    }
+
+    // If no entry for this term in this document yet, add docId to the list
+    if (docIdFound == token->listLength) {
+      token->listLength++;
+      token->postingList[token->listLength - 1].docId = docId;
+      token->postingList[token->listLength - 1].occurrences = 1;
+    }
   }
 
   return vocabulary;
@@ -61,8 +139,8 @@ Token* addToken(Token* vocabulary, wchar_t* tokenName, unsigned int docId) {
 
 // See token.h
 void freeToken(Token* t) {
-  free(t->docIds);
-  t->docIds = NULL;
+  free(t->postingList);
+  t->postingList = NULL;
   free(t->name);
   t->name = NULL;
   free(t);
