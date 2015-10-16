@@ -1,39 +1,48 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <wchar.h>
 
-#include "util/types.h"
+#include "token.h"
+#include "util/parser.h"
+#include "util/uthash.h"
 
-static const unsigned int kBufferSize = 32;
-
-static bool rotate(wchar_t* buffer, unsigned int offset, FILE* input) {
-  return 0;
-}
-
-static bool read(wchar_t* buffer, unsigned int size, FILE* input) {
-  return 0;
-}
-
-int main(int argc, char **argv) {
+int main() {
   FILE* input = stdin;
+  FILE* output = stdout;
+  Token* vocabulary = NULL;
+  wchar_t buffer[kBufferSize];
 
-  // Allocation of the unicode buffer
-  wchar_t* buffer = (wchar_t*) malloc(sizeof(wchar_t) * kBufferSize);
-
-  // Reading the first bytes
-  if (!read(buffer, kBufferSize, input)) return 1;
-
-  unsigned int i = 0;
-  // As long as the buffer is not empty
-  while (buffer && *buffer) {
-    // Rotate buffer if needed
-    if (i + 10 >= kBufferSize) {
-      if (!rotate(buffer, i, input)) return 1;
-      i = 0;
-    } else {  // Print 10 unicode characters:
-      printf("%ls", buffer + i);
-      i += 10;
+  for (unsigned int docId = 0; !feof(input); ++docId) {
+    buffer[0] = L'\0';  // Set to empty string
+    wchar_t* result = fgetws(buffer, kBufferSize, input);
+    if (!result) {
+      if (!feof(input)) return 1;
+      else break;
     }
+
+    bool endOfBuffer = false;
+    do {
+      wchar_t tokenName[kBufferSize];
+      tokenName[0] = L'\0';  // Initialize to empty string
+      if (!nextToken(buffer, input, tokenName, &endOfBuffer)) return 1;
+
+      vocabulary = addToken(vocabulary, tokenName, docId);
+      if (!vocabulary) return 1;
+    } while (!endOfBuffer);
   }
+
+  // Print and free the hash table contents
+  Token* t = NULL;
+  Token* tmp = NULL;
+  HASH_ITER(hh, vocabulary, t, tmp) {
+    fprintToken(output, t);
+
+    HASH_DEL(vocabulary, t);
+    deleteToken(t);
+    t = NULL;
+  }
+  free(vocabulary);
+  vocabulary = NULL;
 
   return 0;
 }
