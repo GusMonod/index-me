@@ -13,11 +13,11 @@ static const wchar_t kTokenSeparator = L' ';
 // Moves some part of the buffer left, overwriting what is before offset, and
 // places the rest of the input stream at the leftover space.
 // Example: kTokenSeparator = L'-', kBufferSize = 10, offset = 4
-// input (already read): <--- e  b  j  -  a  b  -  g  t
+// input (already read): <--- e  b  j  -  a  b  -  g  ♫
 // input (left to read): <--- d  \n r  e  s  t  EOF
-// buffer = e  b  j  -  a  b  -  g  t  \0
+// buffer = e  b  j  -  a  b  -  g  ♫  \0
 // After this rotate function, buffer becomes:
-// +------> a  b  -  g  t  d  \n \0 t  \0
+// +------> a  b  -  g  ♫  d  \n \0 t  \0
 // Note: if there is a L'\n' or EOF character read in the input, it stops the
 // read, thus making the buffer smaller (less non L'\0' characters) until buffer
 // is empty or contains a single L'\n' character.
@@ -37,14 +37,13 @@ static void rotate(wchar_t* buffer, unsigned int offset, FILE* input) {
   }
 }
 
-// See util/parser.h
-bool nextToken(wchar_t* buffer, FILE* input,
-               wchar_t* tokenName, bool* endOfBuffer) {
-  if (!buffer || !*buffer || L'\n' == *buffer) {
-    *endOfBuffer = true;  // No more to read
-    return true;
-  }
+bool endOfBuffer(wchar_t* buffer) {
+  // Null buffer, empty buffer or L'\n' buffer all mean no next token
+  return !buffer || !*buffer || L'\n' == *buffer;
+}
 
+// See util/parser.h
+bool nextToken(wchar_t* buffer, FILE* input, wchar_t* tokenName) {
   unsigned int splitIndex = 0;
   for ( ; splitIndex < kBufferSize; ++splitIndex) {
     if (kTokenSeparator == buffer[splitIndex]) break;  // Found
@@ -65,15 +64,12 @@ bool nextToken(wchar_t* buffer, FILE* input,
 
   // No split character found: this is the last token
   if (splitIndex >= kBufferSize) {
-    *endOfBuffer = true;
+    buffer[0] = L'\0';  // endOfBuffer -> true
     return true;
   }
 
   // Removing token from buffer + adding more of the input stream in buffer
   rotate(buffer, splitIndex + 1, input);
-
-  // Null buffer, empty buffer or L'\n' buffer all mean no next token
-  *endOfBuffer = !buffer || !*buffer || L'\n' == *buffer;
 
   return true;
 }

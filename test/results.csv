@@ -1,9 +1,9 @@
 Test ID;Return code validation;Out result;StdErr result;File creation result;Global result
-101.EmptyInput;Echec;Ok;Ok;Non testé;Echec
-102.Usual;Echec;Echec;Ok;Non testé;Echec
-103.Unicode;Echec;Echec;Ok;Non testé;Echec
-104.EmptyLines;Echec;Echec;Ok;Non testé;Echec
-105.NoNewline;Echec;Echec;Ok;Non testé;Echec
-106.SingleDocument;Echec;Echec;Ok;Non testé;Echec
-107.LongWords;Echec;Non testé;Ok;Non testé;Echec
-201.Usual;Echec;Non testé;Non testé;Non testé;Echec
+101.EmptyInput;Ok;Ok;Ok;Not tested;Ok
+102.Usual;Ok;Ok;Ok;Not tested;Ok
+103.Unicode;Ok;Ok;Ok;Not tested;Ok
+104.EmptyLines;Ok;Ok;Ok;Not tested;Ok
+105.NoNewline;Ok;Ok;Ok;Not tested;Ok
+106.SingleDocument;Ok;Ok;Ok;Not tested;Ok
+107.LongWords;Ok;Ok;Ok;Not tested;Ok
+201.Usual;Ok;Not tested;Not tested;Not tested;Ok

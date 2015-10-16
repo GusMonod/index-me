@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <wchar.h>
 
 #include "token.h"
@@ -59,7 +60,7 @@ Token* addToken(Token* vocabulary, wchar_t* tokenName, unsigned int docId) {
 }
 
 // See token.h
-void deleteToken(Token* t) {
+void freeToken(Token* t) {
   free(t->docIds);
   t->docIds = NULL;
   free(t->name);

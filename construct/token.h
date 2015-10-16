@@ -1,6 +1,8 @@
 #ifndef CONSTRUCT_TOKEN_H_
 #define CONSTRUCT_TOKEN_H_
 
+#include <stdio.h>
+
 #include "util/types.h"
 #include "util/uthash.h"
 
@@ -25,6 +27,6 @@ Token* addToken(Token* vocabulary, wchar_t* tokenName, unsigned int docId);
 
 // Frees the memory of a Token and all it points to.
 // CAUTION: does NOT remove the token pointer from vocabulary, you MUST do it!
-void deleteToken(Token* t);
+void freeToken(Token* t);
 
 #endif  // CONSTRUCT_TOKEN_H_
