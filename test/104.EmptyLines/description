@@ -1,1 +1,1 @@
-Classic input with empty lines (should detect a single empty token)
+Classic input with empty lines (should be counted with no token).

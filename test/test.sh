@@ -70,7 +70,7 @@ returnCode=$?
 resultGlobal="Ok"
 
 # compare return code if concerned
-resultRC="Non testé"
+resultRC="Not tested"
 if [ -r "returncode" ]
 then
   if [ "$returnCode" = `cat returncode` ]
@@ -80,13 +80,13 @@ then
   else
     echo "$returnCode" > returnCode.REAL
     echo "                                       Return Code : FAILED"
-    resultRC="Echec"
-    resultGlobal="Echec"
+    resultRC="Failure"
+    resultGlobal="Failure"
   fi
 fi
 
 # compare stdout if concerned
-resultOut="Non testé"
+resultOut="Not tested"
 if [ -r "std.out" ]
 then
   diff -wB temp.txt std.out > stdout.DIFF
@@ -98,15 +98,15 @@ then
   else
     cp temp.txt stdout.REAL
     echo "                                       Stdout      : FAILED"
-    resultOut="Echec"
-    resultGlobal="Echec"
+    resultOut="Failure"
+    resultGlobal="Failure"
   fi
   # clean temporary out file
   rm temp.txt
 fi
 
 # compare stderr if concerned
-resultErr="Non testé"
+resultErr="Not tested"
 if [ -r "stderr.out" ]
 then
   diff -wB temperr.txt stderr.out > stderr.DIFF
@@ -118,15 +118,15 @@ then
   else
     cp temperr.txt stderr.REAL
     echo "                                       Stderr      : FAILED"
-    resultErr="Echec"
-    resultGlobal="Echec"
+    resultErr="Failure"
+    resultGlobal="Failure"
   fi
   # clean temporary out file
   rm temperr.txt
 fi
 
 # compare files created if concerned
-resultFiles="Non testé"
+resultFiles="Not tested"
 if ls *.outfile &> /dev/null
 then
   number=1
@@ -141,25 +141,25 @@ then
         echo "                                       File #$number     : PASSED"
       else
         echo "                                       File #$number     : FAILED"
-        resultFiles="Echec"
-        resultGlobal="Echec"
+        resultFiles="Failure"
+        resultGlobal="Failure"
       fi
       rm $fileName
     else
       echo "                                       File #$number     : FAILED"
-      resultFiles="Echec"
-      resultGlobal="Echec"
+      resultFiles="Failure"
+      resultGlobal="Failure"
     fi
     let "number=$number+1"
   done
-  if [ $resultFiles = "Non testé" ]
+  if [ $resultFiles = "Not tested" ]
   then
     resultFiles="Ok"
   fi
 fi
 
 echo "                                       --------------------"
-if [ $resultGlobal = "Echec" ]
+if [ $resultGlobal = "Failure" ]
 then
   echo "                                       Global      : FAILED"
 else
@@ -183,7 +183,7 @@ then
   fi
 fi
 
-if [ $resultGlobal = "Echec" ]
+if [ $resultGlobal = "Failure" ]
 then
    exit 0
 fi
