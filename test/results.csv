@@ -6,4 +6,3 @@ Test ID;Return code validation;Out result;StdErr result;File creation result;Glo
 105.NoNewline;Ok;Ok;Ok;Not tested;Ok
 106.SingleDocument;Ok;Ok;Ok;Not tested;Ok
 107.LongWords;Ok;Ok;Ok;Not tested;Ok
-201.Usual;Ok;Not tested;Not tested;Not tested;Ok
