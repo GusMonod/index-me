@@ -1,0 +1,9 @@
+Test ID;Return code validation;Out result;StdErr result;File creation result;Global result
+101.EmptyInput;Ok;Ok;Ok;Non testé;Ok
+102.Usual;Ok;Ok;Ok;Non testé;Ok
+103.Unicode;Ok;Ok;Ok;Non testé;Ok
+104.EmptyLines;Ok;Ok;Ok;Non testé;Ok
+105.NoNewline;Ok;Ok;Ok;Non testé;Ok
+106.SingleDocument;Ok;Ok;Ok;Non testé;Ok
+107.LongWords;Ok;Echec;Ok;Non testé;Echec
+201.Usual;Ok;Ok;Ok;Non testé;Ok

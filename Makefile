@@ -1,10 +1,8 @@
-ZIPF_SRC=$(wildcard zipf/*.c)
-CONS_SRC=$(wildcard construct/*.c)
+ZIPF_SRC=$(wildcard zipf/*.c) $(wildcard util/*.c)
+CONS_SRC=$(wildcard construct/*.c) $(wildcard util/*.c)
 
-ZIPF_OBJECTS=$(ZIPF_SRC:.c=.o)
-CONS_OBJECTS=$(CONS_SRC:.c=.o)
-
-OBJECTS=$ZIPF_OBJECTS $CONS_OBJECTS
+ZIPF_OBJECTS=$(addprefix obj/, $(CONS_SRC:.c=.o))
+CONS_OBJECTS=$(addprefix obj/, $(CONS_SRC:.c=.o))
 
 CC=gcc
 CC_FLAGS=-std=c11 -pedantic -Wall -W -Wextra
@@ -17,6 +15,7 @@ else
 endif
 
 LD=gcc
+LD_FLAGS=
 
 LIBS=
 LIB_PATH=-L/usr/local/lib
@@ -24,24 +23,26 @@ LIB_PATH=-L/usr/local/lib
 INC=
 INC_PATH=-I$(shell pwd)
 
-.PHONY: clean
+.PHONY: clean test
 
 bin/construct: $(CONS_OBJECTS)
-	mkdir -p bin
-	$(LD) $(LD_FLAGS) $(INC_PATH) $(LIB_PATH) $< $(LIBS) -o $@
+	@mkdir -p bin
+	$(LD) $(CC_FLAGS) $(LD_FLAGS) $(INC_PATH) $(LIB_PATH) \
+	      $(CONS_OBJECTS) $(LIBS) -o $@
 
 bin/zipf: $(ZIPF_OBJECTS)
-	mkdir -p bin
-	$(LD) $(LD_FLAGS) $(INC_PATH) $(LIB_PATH) $< $(LIBS) -o $@
+	@mkdir -p bin
+	$(LD) $(CC_FLAGS) $(LD_FLAGS) $(INC_PATH) $(LIB_PATH) \
+	      $(ZIPF_OBJECTS) $(LIBS) -o $@
 
-#$(PROG): $(OBJECTS)
-#	mkdir -p bin
-#	$(LD) $(LD_FLAGS) $(INC_PATH) $(LIB_PATH) $(OBJECTS) $(LIBS) -o $(PROG)
-
-%.o: %.c
-	@echo Compiling $<...
+obj/%.o: %.c
+	@mkdir -p $(shell echo $@ | sed 's/[^/]*$$//g')
+	@echo "Compiling $<..."
 	$(CC) $(CC_FLAGS) $(INC_PATH) -c $< -o $@
-	@echo Compiled $< successfully
+	@echo "... Compiled $<\n"
 
 clean:
-	rm -f $(OBJECTS) bin/* core
+	rm -rf obj/* bin/* core
+
+test: bin/construct
+	@(cd test; ./mktest.sh)
