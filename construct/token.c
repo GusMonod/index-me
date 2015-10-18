@@ -60,12 +60,12 @@ static bool addOccurrence(unsigned int docId) {
 void fprintToken(FILE* output, const Token* t, bool printFrequencies) {
   fprintf(output, "%ls: ", t->name);
   if (printFrequencies) {
-    fprintf(output, "idf=%f, in docs: %u (tf = %f)",
+    fprintf(output, "idf=%.2f, in docs: %u(tf = %.2f)",
             inverseDocumentFrequency(t),
             t->postingList[0].docId,
             termFrequency(t, t->postingList[0].docId));
     for (unsigned int i = 1; i < t->listLength; ++i) {
-      fprintf(output, ", %u(tf = %f)",
+      fprintf(output, ", %u(tf = %.2f)",
               t->postingList[i].docId,
               termFrequency(t, t->postingList[i].docId));
     }

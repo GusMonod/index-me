@@ -7,8 +7,10 @@
 #include "util/parser.h"
 #include "util/uthash.h"
 
-int main() {
+int main(int argc, char** argv) {
   setlocale(LC_ALL, "");  // For unicode handling
+
+  bool printFrequencies = (argc > 1 && (strcmp(argv[1], "-tfidf") == 0));
 
   FILE* input = stdin;
   FILE* output = stdout;
@@ -43,7 +45,7 @@ int main() {
   Token* t = NULL;
   Token* tmp = NULL;
   HASH_ITER(hh, vocabulary, t, tmp) {
-    fprintToken(output, t, false);
+    fprintToken(output, t, printFrequencies);
 
     HASH_DEL(vocabulary, t);
     freeToken(t);
