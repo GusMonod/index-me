@@ -46,11 +46,8 @@ int main(int argc, char** argv) {
   Token* tmp = NULL;
   HASH_ITER(hh, vocabulary, t, tmp) {
     fprintToken(output, t, printFrequencies);
-
-    HASH_DEL(vocabulary, t);
-    freeToken(t);
-    t = NULL;
   }
+  vocabulary = saveAndCleanVocabulary(vocabulary);
   free(vocabulary);
   vocabulary = NULL;
 

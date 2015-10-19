@@ -28,9 +28,12 @@ typedef struct {
 // If printFrequencies is set to true, the frequencies are also displayed.
 void fprintToken(FILE* output, const Token* t, bool printFrequencies);
 
-// Adds an occurence of the tokenName, docId pair in the vocabulary.
+// Adds an occurence of the tokenName, docId pair in the vocabulary. Frees and serializes the vocabulary if needed.
 // Assumes docId is equal or one more than docId in last call
 Token* addToken(Token* vocabulary, wchar_t* tokenName, unsigned int docId);
+
+// Serializes the vocabulary and removes all its token from memory
+Token* saveAndCleanVocabulary(Token* vocabulary);
 
 // Frees the memory of a Token and all it points to.
 // CAUTION: does NOT remove the token pointer from vocabulary, you MUST do it!

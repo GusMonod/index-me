@@ -78,8 +78,25 @@ void fprintToken(FILE* output, const Token* t, bool printFrequencies) {
   fprintf(output, "\n");
 }
 
-// See token.h
-Token* addToken(Token* vocabulary, wchar_t* tokenName, unsigned int docId) {
+  //See token.h
+  Token* saveAndCleanVocabulary(Token* vocabulary) {
+  static unsigned int indexPartNumber = 1; // Number to use for the filename of the next index part.
+  //TODO : Actually save the vocabulary
+  indexPartNumber++;
+
+  //Free the hash table contents
+  Token* t = NULL;
+  Token* tmp = NULL;
+  HASH_ITER(hh, vocabulary, t, tmp) {
+    HASH_DEL(vocabulary, t);
+    freeToken(t);
+    t = NULL;
+  }
+  return vocabulary;
+}
+
+// Tries to add an occurence of the tokenName, docId pair in the vocabulary. Returns NULL if it can't be done
+Token* tryToAddToken(Token* vocabulary, wchar_t* tokenName, unsigned int docId) {
   if (!addOccurrence(docId)) return NULL;
 
   Token* token = NULL;
@@ -135,6 +152,16 @@ Token* addToken(Token* vocabulary, wchar_t* tokenName, unsigned int docId) {
   }
 
   return vocabulary;
+}
+
+// See token.h
+Token* addToken(Token* vocabulary, wchar_t* tokenName, unsigned int docId) {
+  Token* vocabularyToReturn = vocabulary;
+  if((vocabularyToReturn = tryToAddToken(vocabularyToReturn, tokenName, docId)) == NULL) {
+    vocabularyToReturn = saveAndCleanVocabulary(vocabularyToReturn);
+    vocabularyToReturn = tryToAddToken(vocabularyToReturn, tokenName, docId);
+  }
+  return vocabularyToReturn;
 }
 
 // See token.h
