@@ -32,7 +32,7 @@ Given a list of tokens, outputs data to check the zipf law.
 Constructs a part of the index and serializes it to a set of files.
 
 ```
-./bin/construct $INTERMEDIARY_LOCATION < tokens.data
+./bin/intermediary-indexes $INTERMEDIARY_LOCATION < tokens.data
 ```
 
 ### Intermediary files merger
@@ -40,5 +40,5 @@ Constructs a part of the index and serializes it to a set of files.
 Merges the intermediary files into one index
 
 ```
-./bin/merger $INTERMEDIARY_LOCATION > index.data
+./bin/indexes-merger $INTERMEDIARY_LOCATION > index.data
 ```

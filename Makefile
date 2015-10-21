@@ -9,7 +9,7 @@ CC_FLAGS=-std=c11 -pedantic -Wall -W -Wextra
 TARGET ?= debug
 
 ifeq ($(TARGET), release)
-		CC_FLAGS +=-DDEBUG
+		CC_FLAGS +=-DNDEBUG -O3
 else
 		CC_FLAGS +=-g -DDEBUG
 endif
@@ -23,7 +23,17 @@ LIB_PATH=-L/usr/local/lib
 INC=
 INC_PATH=-I$(shell pwd)
 
-.PHONY: clean test
+.PHONY: clean test corpus
+
+# aliases
+all: construct merger zipf
+construct: bin/construct
+merger: bin/merger
+zipf: bin/zipf
+
+corpus:
+	@mkdir -p corpus
+	(cd tokenizer && npm install && node node_modules/.bin/gulp)
 
 bin/construct: $(CONS_OBJECTS)
 	@mkdir -p bin
@@ -42,7 +52,7 @@ obj/%.o: %.c
 	@echo "... Compiled $<\n"
 
 clean:
-	rm -rf obj/* bin/* core
+	rm -rf obj/* bin/* core tokenizer/node_modules tokenizer/obj
 
 test: bin/construct
-	@(cd test; ./mktest.sh)
+	(cd test; ./mktest.sh)
