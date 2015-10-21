@@ -19,6 +19,10 @@ static const unsigned int kInitialPostingListSize = 5;
 // By how much the size is multiplied when reallocating posting list
 static const unsigned int kSizeAugmentFactor = 2;
 
+static int compareTokens(Token* t1, Token* t2){
+  return wcscmp(t1->name, t2->name);
+}
+
 // Returns the idf (inverse document frequency) of a Token
 static double inverseDocumentFrequency(const Token* term) {
   return log10((double) documentsCountInCorpus / term->listLength);
@@ -26,16 +30,16 @@ static double inverseDocumentFrequency(const Token* term) {
 
 // Returns the tf (term frequency) in a document of a Token
 static double termFrequency(const Token* term, unsigned int documentId) {
-  double occurencesInDocument = 0;
+  double occurrencesInDocument = 0;
   unsigned int i;
   for (i = 0; i < term->listLength; ++i) {
     if (term->postingList[i].docId == documentId) {
-      occurencesInDocument = (double) term->postingList[i].occurrences;
+      occurrencesInDocument = (double) term->postingList[i].occurrences;
     }
   }
 
   if (documentId < documentsCountInCorpus) {
-    return occurencesInDocument/(double) wordCountByDocumentId[documentId];
+    return occurrencesInDocument/(double) wordCountByDocumentId[documentId];
   } else {
     return 0;
   }
@@ -57,36 +61,63 @@ static bool addOccurrence(unsigned int docId) {
 }
 
 // See token.h
-void fprintToken(FILE* output, const Token* t, bool printFrequencies) {
-  fprintf(output, "%ls: ", t->name);
-  if (printFrequencies) {
-    fprintf(output, "idf=%.2f, in docs: %u(tf = %.2f)",
-            inverseDocumentFrequency(t),
-            t->postingList[0].docId,
-            termFrequency(t, t->postingList[0].docId));
-    for (unsigned int i = 1; i < t->listLength; ++i) {
-      fprintf(output, ", %u(tf = %.2f)",
-              t->postingList[i].docId,
-              termFrequency(t, t->postingList[i].docId));
-    }
-  } else {
-    fprintf(output, "%u", t->postingList[0].docId);
-    for (unsigned int i = 1; i < t->listLength; ++i) {
-      fprintf(output, ", %u", t->postingList[i].docId);
-    }
+void fprintToken(FILE* output, const Token* t, TokenPrintMode printMode) {
+  switch (printMode) {
+
+    case TEST_SIMPLE :
+      fprintf(output, "%ls: ", t->name);    
+      fprintf(output, "idf=%.2f, in docs: %u(tf = %.2f)",
+              inverseDocumentFrequency(t),
+              t->postingList[0].docId,
+              termFrequency(t, t->postingList[0].docId));
+      for (unsigned int i = 1; i < t->listLength; ++i) {
+        fprintf(output, ", %u(tf = %.2f)",
+                t->postingList[i].docId,
+                termFrequency(t, t->postingList[i].docId));
+      }
+      fprintf(output, "\n");
+      break;
+
+    case TEST_TFIDF:
+      fprintf(output, "%ls: ", t->name);     
+      fprintf(output, "%u", t->postingList[0].docId);
+      for (unsigned int i = 1; i < t->listLength; ++i) {
+        fprintf(output, ", %u", t->postingList[i].docId);
+      }
+      fprintf(output, "\n");
+      break;
+
+    case SERIALIZATION:
+      fprintf(output, "%ls\n", t->name);
+      fprintf(output, "%u %u", t->postingList[0].docId, t->postingList[0].occurrences);
+      for (unsigned int i = 1; i < t->listLength; ++i) {
+        fprintf(output, " %u %u", t->postingList[i].docId, t->postingList[i].occurrences);
+      }
+      fprintf(output, "\n");
+      break;
   }
-  fprintf(output, "\n");
 }
 
   //See token.h
   Token* saveAndCleanVocabulary(Token* vocabulary) {
   static unsigned int indexPartNumber = 1; // Number to use for the filename of the next index part.
-  //TODO : Actually save the vocabulary
+
+  //Sort the hash table to serialize a sorted index
+  HASH_SORT(vocabulary, compareTokens);
+  Token* t = NULL;
+  Token* tmp = NULL;
+  char indexPartFileName[20]; //Array to receive the filename of the next index part (5 characters for index, 14 characters max for the number)
+  sprintf(indexPartFileName, "index%u", indexPartNumber);
+  FILE* indexPart = fopen(indexPartFileName, "w+");
+  HASH_ITER(hh, vocabulary, t, tmp) {
+    fprintToken(indexPart, t, SERIALIZATION);
+  }
+
   indexPartNumber++;
 
   //Free the hash table contents
-  Token* t = NULL;
-  Token* tmp = NULL;
+  t = NULL;
+  tmp = NULL;
   HASH_ITER(hh, vocabulary, t, tmp) {
     HASH_DEL(vocabulary, t);
     freeToken(t);
@@ -96,7 +127,7 @@ void fprintToken(FILE* output, const Token* t, bool printFrequencies) {
 }
 
 // Tries to add an occurence of the tokenName, docId pair in the vocabulary. Returns NULL if it can't be done
-Token* tryToAddToken(Token* vocabulary, wchar_t* tokenName, unsigned int docId) {
+static Token* tryToAddToken(Token* vocabulary, wchar_t* tokenName, unsigned int docId) {
   if (!addOccurrence(docId)) return NULL;
 
   Token* token = NULL;

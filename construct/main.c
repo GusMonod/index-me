@@ -10,7 +10,7 @@
 int main(int argc, char** argv) {
   setlocale(LC_ALL, "");  // For unicode handling
 
-  bool printFrequencies = (argc > 1 && (strcmp(argv[1], "-tfidf") == 0));
+  TokenPrintMode requestedPrintMode = (argc > 1 && (strcmp(argv[1], "-tfidf") == 0)) ? TEST_TFIDF : TEST_SIMPLE;
 
   FILE* input = stdin;
   FILE* output = stdout;
@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
   Token* t = NULL;
   Token* tmp = NULL;
   HASH_ITER(hh, vocabulary, t, tmp) {
-    fprintToken(output, t, printFrequencies);
+    fprintToken(output, t, requestedPrintMode);
   }
   vocabulary = saveAndCleanVocabulary(vocabulary);
   free(vocabulary);

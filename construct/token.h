@@ -6,6 +6,12 @@
 #include "util/types.h"
 #include "util/uthash.h"
 
+typedef enum {
+  TEST_SIMPLE,
+  TEST_TFIDF,
+  SERIALIZATION
+} TokenPrintMode;
+
 typedef struct {
   unsigned int docId;
   unsigned int occurrences;  //Number of occurrences of the term in the document
@@ -25,8 +31,8 @@ typedef struct {
 } Token;
 
 // Displays a token key and payload on the output.
-// If printFrequencies is set to true, the frequencies are also displayed.
-void fprintToken(FILE* output, const Token* t, bool printFrequencies);
+// If printMode is set to TF_IDF, the frequencies are also displayed. If printMode is set to SERIALIZATION, the output is printed like is is meant to be serialized
+void fprintToken(FILE* output, const Token* t, TokenPrintMode printMode);
 
 // Adds an occurence of the tokenName, docId pair in the vocabulary. Frees and serializes the vocabulary if needed.
 // Assumes docId is equal or one more than docId in last call
