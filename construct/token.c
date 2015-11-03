@@ -64,7 +64,7 @@ static bool addOccurrence(unsigned int docId) {
 void fprintToken(FILE* output, const Token* t, TokenPrintMode printMode) {
   switch (printMode) {
 
-    case TEST_SIMPLE :
+    case TEST_TFIDF :
       fprintf(output, "%ls: ", t->name);    
       fprintf(output, "idf=%.2f, in docs: %u(tf = %.2f)",
               inverseDocumentFrequency(t),
@@ -78,7 +78,7 @@ void fprintToken(FILE* output, const Token* t, TokenPrintMode printMode) {
       fprintf(output, "\n");
       break;
 
-    case TEST_TFIDF:
+    case TEST_SIMPLE:
       fprintf(output, "%ls: ", t->name);     
       fprintf(output, "%u", t->postingList[0].docId);
       for (unsigned int i = 1; i < t->listLength; ++i) {
