@@ -8,7 +8,7 @@
 #include "util/uthash.h"
 
 int main(int argc, char** argv) {
-  setlocale(LC_ALL, "");  // For unicode handling
+  setlocale(LC_ALL, "en_US.UTF-8");  // For unicode handling
 
   TokenPrintMode requestedPrintMode = (argc > 1 && (strcmp(argv[1], "-tfidf") == 0)) ? TEST_TFIDF : TEST_SIMPLE;
 
