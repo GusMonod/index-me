@@ -23,7 +23,7 @@ LIB_PATH=-L/usr/local/lib
 INC=
 INC_PATH=-I$(shell pwd)
 
-.PHONY: clean test corpus
+.PHONY: clean test corpus merger
 
 # aliases
 all: construct merger zipf
@@ -39,13 +39,17 @@ bin/construct: $(CONS_OBJECTS)
 	@mkdir -p bin
 	$(LD) $(CC_FLAGS) $(LD_FLAGS) $(INC_PATH) $(LIB_PATH) \
 	      $(CONS_OBJECTS) $(LIBS) -o $@
-	mv -f bin/construct.exe bin/construct
+	@mv bin/construct.exe bin/construct 2> /dev/null || test 1
+
+bin/merger:
+	@echo $@: "Not yet implemented"
+	@mv bin/merger.exe bin/merger 2> /dev/null || test 1
 
 bin/zipf: $(ZIPF_OBJECTS)
 	@mkdir -p bin
 	$(LD) $(CC_FLAGS) $(LD_FLAGS) $(INC_PATH) $(LIB_PATH) \
 	      $(ZIPF_OBJECTS) $(LIBS) -o $@
-	mv -f bin/zipf.exe bin/zipf
+	@mv bin/zipf.exe bin/zipf 2> /dev/null || test 1
 
 obj/%.o: %.c
 	@mkdir -p $(shell echo $@ | sed 's/[^/]*$$//g')

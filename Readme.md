@@ -12,11 +12,11 @@ make
 
 ### Tokenization/Stemming
 
-Python script that outputs a document per line on which the words will be
+Node js script that outputs a document per line on which the words will be
 separated by spaces.
 
 ```
-python ./scripts/tokenize.py $CORPUS_LOCATION > tokens.data
+make corpus
 ```
 
 ### Zipf Law verification
