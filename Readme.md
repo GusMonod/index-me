@@ -1,5 +1,7 @@
 # index-me
 
+[![Build Status](https://travis-ci.org/GusMonod/index-me.svg?branch=master)](https://travis-ci.org/GusMonod/index-me)
+
 Inverted file with memory allocation.
 
 ## Compilation
