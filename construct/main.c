@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
   setlocale(LC_ALL, "en_US.UTF-8");  // For unicode handling
 
   // Parsing command line arguments
-  TokenPrintMode requestedPrintMode;
+  TermPrintMode requestedPrintMode;
   if (argc > 1 && (strcmp(argv[1], "-tfidf") == 0)) {
     requestedPrintMode = TEST_TFIDF;
   } else {

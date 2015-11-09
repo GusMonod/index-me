@@ -26,6 +26,13 @@ typedef struct {
   UT_hash_handle hh;
 } TermEntry;
 
+// How to print the term
+typedef enum {
+  TEST_SIMPLE,
+  TEST_TFIDF,
+  SERIALIZATION
+} TermPrintMode;
+
 // A TermEntry is a hash table itself (see uthash doc)
 typedef TermEntry Vocabulary;
 
@@ -45,7 +52,7 @@ Vocabulary* fpurgeIndex(FILE* output, Vocabulary* vocabulary);
 // If printMode is set to TF_IDF, the frequencies are also displayed.
 // If it is set to SERIALIZATION, the output is printed like is is meant to be
 // serialized.
-void fprintTerm(FILE* output, const Token* t, TokenPrintMode printMode);
+void fprintTerm(FILE* output, const TermEntry* t, TermPrintMode printMode);
 
 // Frees the memory of a TermEntry and all it points to, including posting list.
 // CAUTION: does NOT remove the token pointer from Vocabulary, you MUST do it!

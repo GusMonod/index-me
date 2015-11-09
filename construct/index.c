@@ -97,8 +97,10 @@ Vocabulary* tryToAddToken(Vocabulary* vocabulary, wchar_t* token,
 
 // See construct/token.h
 Vocabulary* fpurgeIndex(FILE* output, Vocabulary* vocabulary) {
+  TermEntry* t = NULL;
+  TermEntry* tmp = NULL;
   HASH_ITER(hh, vocabulary, t, tmp) {
-    fprintToken(indexPart, t, SERIALIZATION);
+    fprintTerm(output, t, SERIALIZATION);
   }
 
   // Free the hash table contents
@@ -108,16 +110,16 @@ Vocabulary* fpurgeIndex(FILE* output, Vocabulary* vocabulary) {
 }
 
 // See construct/token.h
-void fprintTerm(FILE* output, const Token* t, TokenPrintMode printMode) {
+void fprintTerm(FILE* output, const TermEntry* t, TermPrintMode printMode) {
   switch (printMode) {
     case TEST_SIMPLE:
-      fprintf(output, "%ls: ", t->name);
-      fprintf(output, "idf=%.2f, in docs: %u(tf = %.2f)",
+      fprintf(output, "%ls: ", t->token);
+      fprintf(output, "idf=%.2f, in docs: %u(tf = %d)",
               inverseDocumentFrequency(t),
               t->postingList[0].docId,
               termFrequency(t, t->postingList[0].docId));
       for (unsigned int i = 1; i < t->listLength; ++i) {
-        fprintf(output, ", %u(tf = %.2f)",
+        fprintf(output, ", %u(tf = %d)",
                 t->postingList[i].docId,
                 termFrequency(t, t->postingList[i].docId));
       }
@@ -125,7 +127,7 @@ void fprintTerm(FILE* output, const Token* t, TokenPrintMode printMode) {
       break;
 
     case TEST_TFIDF:
-      fprintf(output, "%ls: ", t->name);
+      fprintf(output, "%ls: ", t->token);
       fprintf(output, "%u", t->postingList[0].docId);
       for (unsigned int i = 1; i < t->listLength; ++i) {
         fprintf(output, ", %u", t->postingList[i].docId);
@@ -134,7 +136,7 @@ void fprintTerm(FILE* output, const Token* t, TokenPrintMode printMode) {
       break;
 
     case SERIALIZATION:
-      fprintf(output, "%ls\n", t->name);
+      fprintf(output, "%ls\n", t->token);
       fprintf(output, "%u %u", t->postingList[0].docId,
               t->postingList[0].occurrences);
       for (unsigned int i = 1; i < t->listLength; ++i) {
