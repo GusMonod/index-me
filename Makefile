@@ -4,8 +4,8 @@ CONS_SRC=$(wildcard construct/*.c) $(wildcard util/*.c)
 ZIPF_OBJECTS=$(addprefix obj/, $(CONS_SRC:.c=.o))
 CONS_OBJECTS=$(addprefix obj/, $(CONS_SRC:.c=.o))
 
-CC=$($(echo $CC) -v && echo "$CC" || echo "gcc")
-CC_FLAGS=-std=c11 -pedantic -Wall -W -Wextra
+CC=gcc
+CC_FLAGS="-std=c11 -pedantic -Wall -W -Wextra"
 TARGET ?= debug
 
 ifeq ($(TARGET), release)
