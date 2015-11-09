@@ -17,7 +17,7 @@ endif
 LD=gcc
 LD_FLAGS=
 
-LIBS=
+LIBS=-lm
 LIB_PATH=-L/usr/local/lib
 
 INC=
