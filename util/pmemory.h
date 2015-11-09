@@ -18,6 +18,6 @@ void* pMalloc(size_t nbBytes);
 void* pRealloc(void* ptr, size_t oldSize, size_t newSize);
 
 // Frees all the memory allocated by pmalloc.
-void pFreeAll();
+void pFree(void* ptr, size_t size);
 
 #endif  // UTIL_PMEMORY_H_

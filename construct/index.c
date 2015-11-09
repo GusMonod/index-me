@@ -101,11 +101,11 @@ Vocabulary* fpurgeIndex(FILE* output, Vocabulary* vocabulary) {
   TermEntry* tmp = NULL;
   HASH_ITER(hh, vocabulary, t, tmp) {
     fprintTerm(output, t, SERIALIZATION);
+    HASH_DEL(vocabulary, t);
+    pFreeTerm(t);
+    t = NULL;
   }
 
-  // Free the hash table contents
-  pFreeAll();
-  vocabulary = NULL;
   return vocabulary;
 }
 
@@ -149,12 +149,12 @@ void fprintTerm(FILE* output, const TermEntry* t, TermPrintMode printMode) {
 }
 
 // See construct/token.h
-void freeTerm(TermEntry* t) {
-  free(t->postingList);
+void pFreeTerm(TermEntry* t) {
+  pFree(t->postingList, t->listSize * sizeof(PostingListEntry));
   t->postingList = NULL;
-  free(t->token);
+  pFree(t->token, wcslen(t->token) * sizeof(wchar_t));
   t->token = NULL;
-  free(t);
+  pFree(t, sizeof(TermEntry));
   t = NULL;
 }
 

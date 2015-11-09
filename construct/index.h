@@ -56,6 +56,6 @@ void fprintTerm(FILE* output, const TermEntry* t, TermPrintMode printMode);
 
 // Frees the memory of a TermEntry and all it points to, including posting list.
 // CAUTION: does NOT remove the token pointer from Vocabulary, you MUST do it!
-void freeTerm(TermEntry* t);
+void pFreeTerm(TermEntry* t);
 
 #endif  // CONSTRUCT_TOKEN_H_
