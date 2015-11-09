@@ -112,7 +112,7 @@ Vocabulary* fpurgeIndex(FILE* output, Vocabulary* vocabulary) {
 // See construct/token.h
 void fprintTerm(FILE* output, const TermEntry* t, TermPrintMode printMode) {
   switch (printMode) {
-    case TEST_SIMPLE:
+    case TEST_TFIDF:
       fprintf(output, "%ls: ", t->token);
       fprintf(output, "idf=%.2f, in docs: %u(tf = %d)",
               inverseDocumentFrequency(t),
@@ -126,7 +126,7 @@ void fprintTerm(FILE* output, const TermEntry* t, TermPrintMode printMode) {
       fprintf(output, "\n");
       break;
 
-    case TEST_TFIDF:
+    case TEST_SIMPLE:
       fprintf(output, "%ls: ", t->token);
       fprintf(output, "%u", t->postingList[0].docId);
       for (unsigned int i = 1; i < t->listLength; ++i) {
