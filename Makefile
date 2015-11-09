@@ -5,7 +5,7 @@ ZIPF_OBJECTS=$(addprefix obj/, $(CONS_SRC:.c=.o))
 CONS_OBJECTS=$(addprefix obj/, $(CONS_SRC:.c=.o))
 
 CC=gcc
-CC_FLAGS= -std=c11 -pedantic -Wall -W -Wextra
+CC_FLAGS= -std=c99 -pedantic -Wall -W -Wextra
 TARGET ?= debug
 
 ifeq ($(TARGET), release)
