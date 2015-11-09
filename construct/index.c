@@ -33,6 +33,11 @@ static bool addOneToTermEntry(TermEntry* term, unsigned int docId);
 static Vocabulary* addNewTermEntry(Vocabulary* vocabulary, TermEntry* term,
                                    wchar_t* token, unsigned int docId);
 
+//See construct/index.h
+int compareTermEntries(TermEntry* t1, TermEntry* t2){
+  return wcscmp(t1->token, t2->token);
+}
+
 // See construct/token.h
 Vocabulary* tryToAddToken(Vocabulary* vocabulary, wchar_t* token,
                           unsigned int docId, bool* noMemory) {
@@ -97,6 +102,9 @@ Vocabulary* tryToAddToken(Vocabulary* vocabulary, wchar_t* token,
 
 // See construct/token.h
 Vocabulary* fpurgeIndex(FILE* output, Vocabulary* vocabulary) {
+  //Sort the hash table to serialize a sorted index
+  HASH_SORT(vocabulary, compareTermEntries);
+
   TermEntry* t = NULL;
   TermEntry* tmp = NULL;
   HASH_ITER(hh, vocabulary, t, tmp) {

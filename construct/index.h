@@ -36,6 +36,9 @@ typedef enum {
 // A TermEntry is a hash table itself (see uthash doc)
 typedef TermEntry Vocabulary;
 
+//Returns positive value if t1>t2, negative value if t1<t2, 0 if they are equal
+int compareTermEntries(TermEntry* t1, TermEntry* t2);
+
 // Adds token occurrence for a docId in the index (vocab + posting list).
 // Assumes docId is equal to or one more than the docId of last call.
 // Sets noMemory to true if it was impossible to add the token, false otherwise.

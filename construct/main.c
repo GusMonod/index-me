@@ -19,9 +19,14 @@ int main(int argc, char** argv) {
 
   // Parsing command line arguments
   TermPrintMode requestedPrintMode;
-  if (argc > 1 && (strcmp(argv[1], "-tfidf") == 0)) {
-    requestedPrintMode = TEST_TFIDF;
-  } else {
+  if (argc > 1) {
+    if((strcmp(argv[1], "-tfidf") == 0))
+      requestedPrintMode = TEST_TFIDF;
+    else if ((strcmp(argv[1], "-serialization") == 0))
+      requestedPrintMode = SERIALIZATION;
+    else
+      requestedPrintMode = TEST_SIMPLE;
+  } else{
     requestedPrintMode = TEST_SIMPLE;
   }
 
@@ -63,6 +68,10 @@ int main(int argc, char** argv) {
   }
   free(buffer);
   buffer = NULL;
+
+  if (requestedPrintMode == SERIALIZATION) {
+    HASH_SORT(vocabulary, compareTermEntries);
+  }
 
   // Print and free the hash table contents
   TermEntry* t = NULL;
