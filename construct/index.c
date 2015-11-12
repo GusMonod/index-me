@@ -38,7 +38,7 @@ int compareTermEntries(TermEntry* t1, TermEntry* t2){
   return wcscmp(t1->token, t2->token);
 }
 
-// See construct/token.h
+// See construct/index.h
 Vocabulary* tryToAddToken(Vocabulary* vocabulary, wchar_t* token,
                           unsigned int docId, bool* noMemory) {
   // Add one to count if this is a new document
@@ -52,23 +52,16 @@ Vocabulary* tryToAddToken(Vocabulary* vocabulary, wchar_t* token,
     // Not found: allocate TermEntry structure
     term = (TermEntry*) pMalloc(sizeof(TermEntry));
     if (!term) {
-      /*
-      free(term);
+      pFreeTerm(term);
       term = NULL;
-      */
       *noMemory = true;
       return vocabulary;
     }
 
     term->token = (wchar_t*) pMalloc(sizeof(wchar_t) * (wcslen(token) + 1));
     if (!term->token) {
-      /*
-      free(term->token);
-      term->token = NULL;
-
-      free(term);
+      pFreeTerm(term);
       term = NULL;
-      */
       *noMemory = true;
       return vocabulary;
     }
@@ -76,20 +69,13 @@ Vocabulary* tryToAddToken(Vocabulary* vocabulary, wchar_t* token,
     term->postingList = (PostingListEntry*) pMalloc(sizeof(PostingListEntry)
                                                     * kInitialPostingListSize);
     if (!term->postingList) {
-      /*
-      free(term->postingList);
-      term->postingList = NULL;
-
-      free(term->token);
-      term->token = NULL;
-
-      free(term);
+      pFreeTerm(term);
       term = NULL;
-      */
       *noMemory = true;
       return vocabulary;
     }
 
+    *noMemory = false;
     // Populate term and add it to vocab
     vocabulary = addNewTermEntry(vocabulary, term, token, docId);
   } else {
@@ -100,7 +86,7 @@ Vocabulary* tryToAddToken(Vocabulary* vocabulary, wchar_t* token,
   return vocabulary;
 }
 
-// See construct/token.h
+// See construct/index.h
 Vocabulary* fpurgeIndex(FILE* output, Vocabulary* vocabulary) {
   //Sort the hash table to serialize a sorted index
   HASH_SORT(vocabulary, compareTermEntries);
@@ -117,7 +103,7 @@ Vocabulary* fpurgeIndex(FILE* output, Vocabulary* vocabulary) {
   return vocabulary;
 }
 
-// See construct/token.h
+// See construct/index.h
 void fprintTerm(FILE* output, const TermEntry* t, TermPrintMode printMode) {
   switch (printMode) {
     case TEST_TFIDF:
@@ -156,16 +142,23 @@ void fprintTerm(FILE* output, const TermEntry* t, TermPrintMode printMode) {
   }
 }
 
-// See construct/token.h
+// See construct/index.h
 void pFreeTerm(TermEntry* t) {
-  pFree(t->postingList, t->listSize * sizeof(PostingListEntry));
-  t->postingList = NULL;
-  pFree(t->token, wcslen(t->token) * sizeof(wchar_t));
-  t->token = NULL;
+  if (!t) return;  // Nothing to do
+
+  if (t->postingList) {
+    pFree(t->postingList, t->listSize * sizeof(PostingListEntry));
+    t->postingList = NULL;
+  }
+
+  if (t->token) {
+    pFree(t->token, (wcslen(t->token) + 1) * sizeof(wchar_t));
+    t->token = NULL;
+  }
+
   pFree(t, sizeof(TermEntry));
   t = NULL;
 }
-
 
 // See top of this file
 static double inverseDocumentFrequency(const TermEntry* term) {

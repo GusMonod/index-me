@@ -8,7 +8,7 @@
 static const size_t kMemorySizeBytes = 8 << 20;  // 8 MB
 
 // Number of allocated bytes
-static unsigned int gAllocatedBytes;
+unsigned int gAllocatedBytes = 0;
 
 // See util/pmemory.h
 void* pMalloc(size_t nbBytes) {

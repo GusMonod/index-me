@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+unsigned int gAllocatedBytes;
+
 // These functions behave as malloc and free, except that the max size of the
 // available memory is set in a constant in util/pmemory.c, making it possible
 // to artificially reduce the available memory.

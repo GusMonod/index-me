@@ -36,7 +36,8 @@ typedef enum {
 // A TermEntry is a hash table itself (see uthash doc)
 typedef TermEntry Vocabulary;
 
-//Returns positive value if t1>t2, negative value if t1<t2, 0 if they are equal
+// Compares the key of each TermEntry, allowing to sort them.
+// Returns positive value if t1 > t2, negative value if t1 < t2, 0 if t1 == t2.
 int compareTermEntries(TermEntry* t1, TermEntry* t2);
 
 // Adds token occurrence for a docId in the index (vocab + posting list).
@@ -58,6 +59,7 @@ Vocabulary* fpurgeIndex(FILE* output, Vocabulary* vocabulary);
 void fprintTerm(FILE* output, const TermEntry* t, TermPrintMode printMode);
 
 // Frees the memory of a TermEntry and all it points to, including posting list.
+// Does not call pFree for NULL pointers.
 // CAUTION: does NOT remove the token pointer from Vocabulary, you MUST do it!
 void pFreeTerm(TermEntry* t);
 
