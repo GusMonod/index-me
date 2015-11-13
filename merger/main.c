@@ -34,6 +34,8 @@ int* electedEntries (TermEntry* termEntries, int termEntriesSize,
       electedEntries[currentElectedIndex++] = i;
     }
   }
+
+  return electedEntries;
 }
 
 int main() {
