@@ -6,6 +6,7 @@
 
 #include "util/index.h"
 #include "util/parser.h"
+#include "util/pmemory.h"
 #include "util/types.h"
 
 /*Returns an array of int containing the indexes of the entries to be elected
@@ -43,7 +44,13 @@ int main() {
 
   FILE* input = stdin;
 
-  while (!feof(input)) {
+  unsigned int currentSize = kInitialNbFiles;
+  unsigned int currentLength = 0;
+  FILE** openFiles = (FILE**) pMalloc(sizeof(FILE*) * currentSize);
+  if (!openFiles) return MEMORY_ERROR;
+
+  // Open an array of files
+  for (unsigned int i = 0; !feof(input); ++i) {
     char filepath[kBufferSize];
     memset(filepath, 0, kBufferSize);
 
@@ -58,19 +65,21 @@ int main() {
     unsigned int sizePath = strlen(filepath);
     if (filepath[sizePath - 1] == '\n') filepath[sizePath - 1] = '\0';
 
-    FILE* index = fopen(filepath, "r");
-
-    printf("%s:\n\n", filepath);
-    while (!feof(index)) {
-      TermEntry* term = readTermEntry(index);
-      if (!term) return PARSE_ERROR;
-
-      fprintTerm(stdout, term, TEST_SIMPLE);
+    if (i >= currentSize) {
+      unsigned int previousSize = currentSize * sizeof(FILE*);
+      currentSize *= 2;
+      openFiles = (FILE**) pRealloc(openFiles, previousSize,
+                                    currentSize * sizeof(FILE*));
+      if (!openFiles) return MEMORY_ERROR;
     }
 
-    fclose(index);
-    index = NULL;
+    openFiles[i] = fopen(filepath, "r");
+    ++currentLength;
   }
+
+  // Close all files and free array
+  for (unsigned int i = 0; i < currentLength; ++i) fclose(openFiles[i]);
+  pFree(openFiles, currentSize * sizeof(FILE*));
 
   return 0;
 }

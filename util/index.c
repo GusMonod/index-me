@@ -208,9 +208,6 @@ static unsigned int termFrequency(const TermEntry* term,
 // See top of this file
 static bool addOneToTermEntry(TermEntry* term, unsigned int docId) {
   if (term->listLength >= term->listSize) {
-    // TODO fix pRealloc and remove the following line
-    return true;  // pRealloc is buggy: stop now
-
     unsigned int previousSize = term->listSize * sizeof(PostingListEntry);
     term->listSize *= kSizeAugmentFactor;
     term->postingList = (PostingListEntry*)
@@ -259,6 +256,9 @@ static Vocabulary* addNewTermEntry(Vocabulary* vocabulary, TermEntry* term,
 static bool allocTerm(TermEntry** pTerm, unsigned int sizeToken) {
   *pTerm = (TermEntry*) pMalloc(sizeof(TermEntry));
   if (!*pTerm) return false;
+
+  (*pTerm)->token = NULL;
+  (*pTerm)->postingList = NULL;
 
   (*pTerm)->token = (wchar_t*) pMalloc(sizeof(wchar_t) * (sizeToken + 1));
   if (!(*pTerm)->token) return false;
