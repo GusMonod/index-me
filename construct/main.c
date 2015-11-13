@@ -6,16 +6,9 @@
 
 #include "construct/index.h"
 #include "util/parser.h"
-#include "util/uthash.h"
 #include "util/pmemory.h"
-
-typedef enum {
-  SUCCESS = 0,
-  INPUT_ERROR = 1,
-  PARSE_ERROR = 2,
-  PURGE_ERROR = 3,
-  ADD_ERROR = 4
-} ReturnCode;
+#include "util/types.h"
+#include "util/uthash.h"
 
 const char outputDirectory[] = ".";
 const unsigned int kMaxFilenameSize = 20;
