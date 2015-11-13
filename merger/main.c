@@ -9,9 +9,19 @@
 #include "util/pmemory.h"
 #include "util/types.h"
 
-/*Returns an array of int containing the indexes of the entries to be elected
-from termEntries, an writes the size of the array in outElectedEntriesSize*/
-int* electedEntries (TermEntry* termEntries, int termEntriesSize,
+static TermEntry* filesToTerms(FILE** openFiles, unsigned int nbFiles) {
+  TermEntry* terms = (TermEntry*) pMalloc(nbFiles * sizeof(TermEntry));
+
+  for (unsigned int i = 0; i < nbFiles; ++i) {
+    terms[i] = readTermEntry(openFiles[i]);
+  }
+
+  return terms;
+}
+
+// Returns an array of int containing the indexes of the entries to be elected
+// from termEntries, an writes the size of the array in outElectedEntriesSize
+static int* electedEntries (TermEntry* termEntries, int termEntriesSize,
     int* outElectedEntriesSize) {
   wchar_t* electedWord = NULL;
   int currentElectedEntriesSize = 0;
@@ -45,7 +55,7 @@ int main() {
   FILE* input = stdin;
 
   unsigned int currentSize = kInitialNbFiles;
-  unsigned int currentLength = 0;
+  unsigned int nbFiles = 0;
   FILE** openFiles = (FILE**) pMalloc(sizeof(FILE*) * currentSize);
   if (!openFiles) return MEMORY_ERROR;
 
@@ -74,12 +84,13 @@ int main() {
     }
 
     openFiles[i] = fopen(filepath, "r");
-    ++currentLength;
+    ++nbFiles;
   }
 
   // Close all files and free array
-  for (unsigned int i = 0; i < currentLength; ++i) fclose(openFiles[i]);
+  for (unsigned int i = 0; i < nbFiles; ++i) fclose(openFiles[i]);
   pFree(openFiles, currentSize * sizeof(FILE*));
+  pFree(terms, nbFiles * sizeof(TermEntry));
 
   return 0;
 }
