@@ -75,3 +75,24 @@ As the constructor, zipf law can be checked at this point by feeding the tokens:
 bin/zipf < ./tokens.txt
 ```
 
+Part 3: Merge into a single index
+---------------------------------
+
+### Goal
+
+At this point we need to take our chunks and re-materialize them on a single index.
+
+That means merging the posting lists and constructing the vocabulary tree that gives the reading offsets in the file used by the index reader then.
+
+### Tech used
+
+We still need to be in a constrained memory environment, so we continue to use C here.
+
+### How to use it
+
+Just let it read from the chunks and catch the final index on STDOUT:
+
+```sh
+bin/merger > ./index.data
+```
+
