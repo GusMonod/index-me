@@ -28,12 +28,14 @@ static int* electedEntries (TermEntry* termEntries, int termEntriesSize,
   int* electedEntries;
 
   for (int i = 0; i < termEntriesSize; i++) {
-    if (electedWord == NULL ||
-        wcscmp(electedWord, termEntries[i].token) > 0) {
-      electedWord = termEntries[i].token;
-      currentElectedEntriesSize = 1;
-    } else if (wcscmp(electedWord, termEntries[i].token) == 0) {
-      currentElectedEntriesSize++;
+    if (termEntries[i] != NULL) {
+      if (electedWord == NULL ||
+          wcscmp(electedWord, termEntries[i].token) > 0) {
+        electedWord = termEntries[i].token;
+        currentElectedEntriesSize = 1;
+      } else if (wcscmp(electedWord, termEntries[i].token) == 0) {
+        currentElectedEntriesSize++;
+      }
     }
   }
 
@@ -41,7 +43,8 @@ static int* electedEntries (TermEntry* termEntries, int termEntriesSize,
   electedEntries = (int*) pMalloc(currentElectedEntriesSize * sizeof(int));
   int currentElectedIndex = 0;
   for (int i = 0; i < termEntriesSize; i++) {
-    if (wcscmp(electedWord, termEntries[i].token) == 0) {
+    if (termEntries[i] != NULL &&
+        wcscmp(electedWord, termEntries[i].token) == 0) {
       electedEntries[currentElectedIndex++] = i;
     }
   }
