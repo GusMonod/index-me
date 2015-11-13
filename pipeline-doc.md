@@ -37,6 +37,41 @@ npm i -g gulp-cli
 Now, you can run the script against the corpus:
 
 ```sh
-CORPUS_PATH=<the absolute path to your corpus> gulp run > tokens.txt
+CORPUS_PATH=<the absolute path to your corpus> gulp run > ../tokens.txt
+```
+
+Step 2: Build the index chunks
+------------------------------
+
+### Goal
+
+With the tokens, build the index chunks up to the memory limit of the process.
+
+The goal is to output a partial vocabulary with partial posting-lists (only the part that fitted in memory). The chunks are written as files in a dir. The tokens are feeded via the STDIN.
+
+### Tech used
+
+As we need a fine grained control on our memory allocations (to simulate insufficient memory), using a low level language was a requirement. C was a perfect candidate!
+
+### How to use it
+
+Make the C binaries first:
+
+```sh
+make
+```
+
+Then it's simple, we just feed the tokens to the executable:
+
+```sh
+bin/construct < ./tokens.txt
+```
+
+### Bonus: Zipf law checking
+
+As the constructor, zipf law can be checked at this point by feeding the tokens:
+
+```sh
+bin/zipf < ./tokens.txt
 ```
 
