@@ -3,8 +3,10 @@
 #include <stdlib.h>
 #include <wchar.h>
 
-#include "construct/index.h"
+#include "util/index.h"
 
+#include "util/types.h"
+#include "util/parser.h"
 #include "util/pmemory.h"
 #include "util/uthash.h"
 
@@ -33,12 +35,16 @@ static bool addOneToTermEntry(TermEntry* term, unsigned int docId);
 static Vocabulary* addNewTermEntry(Vocabulary* vocabulary, TermEntry* term,
                                    wchar_t* token, unsigned int docId);
 
-//See construct/index.h
+// Allocates memory for a new TermEntry, changing the pointed pointer.
+// Returns false if there is not enough memory, true otherwise.
+static bool allocTerm(TermEntry** pTerm, unsigned int sizeToken);
+
+//See util/index.h
 int compareTermEntries(TermEntry* t1, TermEntry* t2){
   return wcscmp(t1->token, t2->token);
 }
 
-// See construct/index.h
+// See util/index.h
 Vocabulary* tryToAddToken(Vocabulary* vocabulary, wchar_t* token,
                           unsigned int docId, bool* noMemory) {
   // Add one to count if this is a new document
@@ -50,25 +56,7 @@ Vocabulary* tryToAddToken(Vocabulary* vocabulary, wchar_t* token,
             wcslen(token) * sizeof(wchar_t), term);
   if (!term) {
     // Not found: allocate TermEntry structure
-    term = (TermEntry*) pMalloc(sizeof(TermEntry));
-    if (!term) {
-      pFreeTerm(term);
-      term = NULL;
-      *noMemory = true;
-      return vocabulary;
-    }
-
-    term->token = (wchar_t*) pMalloc(sizeof(wchar_t) * (wcslen(token) + 1));
-    if (!term->token) {
-      pFreeTerm(term);
-      term = NULL;
-      *noMemory = true;
-      return vocabulary;
-    }
-
-    term->postingList = (PostingListEntry*) pMalloc(sizeof(PostingListEntry)
-                                                    * kInitialPostingListSize);
-    if (!term->postingList) {
+    if (!allocTerm(&term, wcslen(token))) {
       pFreeTerm(term);
       term = NULL;
       *noMemory = true;
@@ -86,7 +74,7 @@ Vocabulary* tryToAddToken(Vocabulary* vocabulary, wchar_t* token,
   return vocabulary;
 }
 
-// See construct/index.h
+// See util/index.h
 Vocabulary* fpurgeIndex(FILE* output, Vocabulary* vocabulary) {
   //Sort the hash table to serialize a sorted index
   HASH_SORT(vocabulary, compareTermEntries);
@@ -103,7 +91,50 @@ Vocabulary* fpurgeIndex(FILE* output, Vocabulary* vocabulary) {
   return vocabulary;
 }
 
-// See construct/index.h
+// See util/index.h
+TermEntry* readTermEntry(FILE* input) {
+  wchar_t buffer[kBufferSize];
+  memset(buffer, 0, kBufferSize * sizeof(wchar_t));  // Set to empty string
+
+  if (!fgetws(buffer, kBufferSize, input)) return NULL;  // Nothing to read
+
+  wchar_t readStr[kBufferSize];
+  memset(readStr, 0, kBufferSize * sizeof(wchar_t));  // Set to empty string
+  if (!nextToken(buffer, input, readStr)) return NULL;  // Parse error
+
+  TermEntry* term;
+  if (!allocTerm(&term, wcslen(readStr))) {
+    pFreeTerm(term);
+    term = NULL;
+    return NULL;
+  }
+  wcscpy(term->token, readStr);
+  term->listLength = 1;
+  term->listSize = kInitialPostingListSize;
+
+  for (unsigned int i = 0; !endOfBuffer(buffer); ++i) {
+    if (!nextToken(buffer, input, readStr)) {
+      pFreeTerm(term);
+      term = NULL;
+      return NULL;  // Parse Error
+    }
+    unsigned int docId = (unsigned int) wcstoul(readStr, NULL, 10);
+
+    if (!nextToken(buffer, input, readStr)) {
+      pFreeTerm(term);
+      term = NULL;
+      return NULL;  // Parse Error
+    }
+
+    unsigned int occurrences = (unsigned int) wcstoul(readStr, NULL, 10);
+    addOneToTermEntry(term, docId);
+    term->postingList[i].occurrences = occurrences;
+  }
+
+  return term;
+}
+
+// See util/index.h
 void fprintTerm(FILE* output, const TermEntry* t, TermPrintMode printMode) {
   switch (printMode) {
     case TEST_TFIDF:
@@ -130,10 +161,8 @@ void fprintTerm(FILE* output, const TermEntry* t, TermPrintMode printMode) {
       break;
 
     case SERIALIZATION:
-      fprintf(output, "%ls\n", t->token);
-      fprintf(output, "%u %u", t->postingList[0].docId,
-              t->postingList[0].occurrences);
-      for (unsigned int i = 1; i < t->listLength; ++i) {
+      fprintf(output, "%ls", t->token);
+      for (unsigned int i = 0; i < t->listLength; ++i) {
         fprintf(output, " %u %u", t->postingList[i].docId,
                 t->postingList[i].occurrences);
       }
@@ -142,7 +171,7 @@ void fprintTerm(FILE* output, const TermEntry* t, TermPrintMode printMode) {
   }
 }
 
-// See construct/index.h
+// See util/index.h
 void pFreeTerm(TermEntry* t) {
   if (!t) return;  // Nothing to do
 
@@ -224,4 +253,19 @@ static Vocabulary* addNewTermEntry(Vocabulary* vocabulary, TermEntry* term,
                   wcslen(term->token) * sizeof(wchar_t), term);
 
   return vocabulary;
+}
+
+// See top of this file
+static bool allocTerm(TermEntry** pTerm, unsigned int sizeToken) {
+  *pTerm = (TermEntry*) pMalloc(sizeof(TermEntry));
+  if (!*pTerm) return false;
+
+  (*pTerm)->token = (wchar_t*) pMalloc(sizeof(wchar_t) * (sizeToken + 1));
+  if (!(*pTerm)->token) return false;
+
+  (*pTerm)->postingList = (PostingListEntry*) pMalloc(sizeof(PostingListEntry)
+                                                  * kInitialPostingListSize);
+  if (!(*pTerm)->postingList) return false;
+
+  return true;
 }

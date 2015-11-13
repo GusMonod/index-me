@@ -4,7 +4,7 @@
 #include <string.h>
 #include <wchar.h>
 
-#include "construct/index.h"
+#include "util/index.h"
 #include "util/parser.h"
 #include "util/pmemory.h"
 #include "util/types.h"

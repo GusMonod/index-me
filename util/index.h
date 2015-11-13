@@ -52,6 +52,9 @@ Vocabulary* tryToAddToken(Vocabulary* vocabulary, wchar_t* token,
 // Returns the vocabulary once the index is purged.
 Vocabulary* fpurgeIndex(FILE* output, Vocabulary* vocabulary);
 
+// Reads a TermEntry from the given input and returns it (or NULL if error).
+TermEntry* readTermEntry(FILE* input);
+
 // Displays a token key and payload on the output.
 // If printMode is set to TF_IDF, the frequencies are also displayed.
 // If it is set to SERIALIZATION, the output is printed like is is meant to be
