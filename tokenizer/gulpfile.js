@@ -16,14 +16,27 @@ gulp.task('build', function() {
       .pipe(gulp.dest('obj'));
 });
 
-gulp.task('run', function() {
-  return new Promise (function (resolve, reject) {
+gulp.task('corpus', function() {
+  return new Promise(function (resolve, reject) {
     require('./obj/tokenize.js').then(function (cleanDocs) {
       var output = fs.createWriteStream(kOutputPath);
       cleanDocs.forEach(function (doc) { output.write(doc + '\n'); });
       resolve(true);
     });
   });
+});
+
+gulp.task('run', function() {
+  return new Promise(function (resolve, reject) {
+    require('./obj/tokenize.js').then(function (cleanDocs) {
+      cleanDocs.forEach(function (doc) { console.log(doc); });
+      resolve(true);
+    });
+  });
+});
+
+gulp.task('build-corpus', function() {
+  runSequence('build', 'corpus');
 });
 
 gulp.task('default', function() {

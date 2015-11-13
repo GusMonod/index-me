@@ -33,7 +33,7 @@ zipf: bin/zipf
 
 corpus:
 	@mkdir -p corpus
-	(cd tokenizer && npm install && node node_modules/.bin/gulp)
+	(cd tokenizer && npm install && node node_modules/.bin/gulp build-corpus)
 
 bin/construct: $(CONS_OBJECTS)
 	@mkdir -p bin

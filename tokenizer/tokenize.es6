@@ -29,11 +29,14 @@ module.exports = co(function*() {
   );
   let cleanDocs = documents.map(doc => doc.toLowerCase()
     // Removes markup tags
-    .replace(/<[a-z\s="\/]+>/g, '')
-    // Replaces non ASCII words characters with a space
-    .replace(/[_'-]?[^a-z_'-]+[_'-]*[^a-z_'-]?/g, ' ')
+    .replace(/(<\!--.*-->)|(<\s*\/?\s*[a-z-]+(\s+[a-z-]+\s*=\s*\"(\\\"|[^\"])*\")*\s*\/?\s*>)/g, '')
+    // Replaces non letters with a space
+    .replace(/[^a-z]+/g, ' ')
     // Removes duplicate whitespaces
     .replace(/\s+/g, ' ')
+    // Removes trailing and leading spaces
+    .replace(/^ /g, '')
+    .replace(/ $/g, '')
   );
 
   return cleanDocs;
