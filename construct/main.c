@@ -4,18 +4,11 @@
 #include <string.h>
 #include <wchar.h>
 
-#include "construct/index.h"
+#include "util/index.h"
 #include "util/parser.h"
-#include "util/uthash.h"
 #include "util/pmemory.h"
-
-typedef enum {
-  SUCCESS = 0,
-  INPUT_ERROR = 1,
-  PARSE_ERROR = 2,
-  PURGE_ERROR = 3,
-  ADD_ERROR = 4
-} ReturnCode;
+#include "util/types.h"
+#include "util/uthash.h"
 
 const char outputDirectory[] = ".";
 const unsigned int kMaxFilenameSize = 20;
@@ -68,13 +61,18 @@ int main(int argc, char** argv) {
       vocabulary = tryToAddToken(vocabulary, token, docId, &noMemory);
       if (noMemory) {
         vocabulary = purgeIndex(output, vocabulary, print);
+        if (gAllocatedBytes > 0) return PURGE_ERROR;
         if (vocabulary) return PURGE_ERROR;  // Vocabulary not empty
 
         // Adding again (once purged)
         vocabulary = tryToAddToken(vocabulary, token, docId, &noMemory);
-        if (noMemory) return ADD_ERROR;  // Could not add
+        if (noMemory) {
+          return ADD_ERROR;  // Could not add
+        }
       }
-      if (!vocabulary) return ADD_ERROR;  // Vocabulary is still empty
+      if (!vocabulary) {
+        return ADD_ERROR;  // Vocabulary is still empty
+      }
     }
   }
 

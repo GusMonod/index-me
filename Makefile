@@ -1,8 +1,10 @@
 ZIPF_SRC=$(wildcard zipf/*.c) $(wildcard util/*.c)
 CONS_SRC=$(wildcard construct/*.c) $(wildcard util/*.c)
+MERG_SRC=$(wildcard merger/*.c) $(wildcard util/*.c)
 
-ZIPF_OBJECTS=$(addprefix obj/, $(CONS_SRC:.c=.o))
+ZIPF_OBJECTS=$(addprefix obj/, $(ZIPF_SRC:.c=.o))
 CONS_OBJECTS=$(addprefix obj/, $(CONS_SRC:.c=.o))
+MERG_OBJECTS=$(addprefix obj/, $(MERG_SRC:.c=.o))
 
 CC=gcc
 CC_FLAGS= -std=c99 -pedantic -Wall -W -Wextra
@@ -41,14 +43,14 @@ bin/construct: $(CONS_OBJECTS)
 	      $(CONS_OBJECTS) $(LIBS) -o $@
 	@mv bin/construct.exe bin/construct 2> /dev/null || test 1
 
-bin/merger:
-	@echo $@: "Not yet implemented"
+bin/merger: $(MERG_OBJECTS)
+	@mkdir -p bin
+	$(LD) $(CC_FLAGS) $(LD_FLAGS) $(INC_PATH) $(LIB_PATH) \
+	      $(MERG_OBJECTS) $(LIBS) -o $@
 	@mv bin/merger.exe bin/merger 2> /dev/null || test 1
 
 bin/zipf: $(ZIPF_OBJECTS)
-	@mkdir -p bin
-	$(LD) $(CC_FLAGS) $(LD_FLAGS) $(INC_PATH) $(LIB_PATH) \
-	      $(ZIPF_OBJECTS) $(LIBS) -o $@
+	@echo $@: not implemented yet
 	@mv bin/zipf.exe bin/zipf 2> /dev/null || test 1
 
 obj/%.o: %.c

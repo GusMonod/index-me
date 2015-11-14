@@ -19,7 +19,7 @@ void* pMalloc(size_t nbBytes);
 // Returns NULL if there is no sufficient memory left.
 void* pRealloc(void* ptr, size_t oldSize, size_t newSize);
 
-// Frees all the memory allocated by pmalloc.
+// Frees size memory starting at the pointer ptr.
 void pFree(void* ptr, size_t size);
 
 #endif  // UTIL_PMEMORY_H_

@@ -4,12 +4,14 @@
 
 # Bash only version:
 #
-# for file in $(ls corpus/*.z)
-# do
-#   gzcat corpus/la011490.z \
+#for file in $(ls corpus/*.z)
+#do
+#  gzcat "$file" \
 #   | tr '[:upper:]' '[:lower:]' \
-#   | sed -E "s/(<\!--.*-->)|(<[[:space:]]*\/?[a-z-]+([[:space:]]+[a-z-]+[[:space:]]*=[[:space:]]*\"(\\\"|[^\"])*\")*>)//g" \
-#   | sed -E "s/[_'-]?[^a-z_'-]+[_'-]*[^a-z_'-]?/ /g" | tr '\n' ' ' \
+#   | sed -E "s/<.*>//g" \
+#   | sed -E "s/[^a-z]/ /g" \
+#   | tr '\n' ' ' \
 #   | sed -E 's/[[:space:]]{2,}/ /g' \
 #   | sed -E 's/(^[[:space:]])|([[:space:]]$)//g'
-# done
+#done
+
