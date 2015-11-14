@@ -18,7 +18,8 @@ Node js script that outputs a document per line on which the words will be
 separated by spaces.
 
 ```
-make corpus
+export CORPUS_PATH=/path/to/corpus
+make corpus  # creates the file corpus/corpus.tok, can take a few minutes
 ```
 
 ### Zipf Law verification
@@ -26,21 +27,22 @@ make corpus
 Given a list of tokens, outputs data to check the zipf law.
 
 ```
-./bin/zipf < tokens.data
+./bin/zipf < corpus/corpus.tok
 ```
 
 ### Intermediary file generator
 
-Constructs a part of the index and serializes it to a set of files.
+Constructs a part of the index and serializes it to a set of files, whose paths
+are written to the standard output.
 
 ```
-./bin/intermediary-indexes $INTERMEDIARY_LOCATION < tokens.data
+./bin/construct < corpus/corpus.tok > partfile.paths  # can take a few minutes
 ```
 
 ### Intermediary files merger
 
-Merges the intermediary files into one index
+Merges the intermediary files into a single index.
 
 ```
-./bin/indexes-merger $INTERMEDIARY_LOCATION > index.data
+./bin/merger < partfile.paths > index.data
 ```
