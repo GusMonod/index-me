@@ -61,13 +61,18 @@ int main(int argc, char** argv) {
       vocabulary = tryToAddToken(vocabulary, token, docId, &noMemory);
       if (noMemory) {
         vocabulary = purgeIndex(output, vocabulary, print);
+        if (gAllocatedBytes > 0) return PURGE_ERROR;
         if (vocabulary) return PURGE_ERROR;  // Vocabulary not empty
 
         // Adding again (once purged)
         vocabulary = tryToAddToken(vocabulary, token, docId, &noMemory);
-        if (noMemory) return ADD_ERROR;  // Could not add
+        if (noMemory) {
+          return ADD_ERROR;  // Could not add
+        }
       }
-      if (!vocabulary) return ADD_ERROR;  // Vocabulary is still empty
+      if (!vocabulary) {
+        return ADD_ERROR;  // Vocabulary is still empty
+      }
     }
   }
 

@@ -26,18 +26,9 @@ static double inverseDocumentFrequency(const TermEntry* term);
 static unsigned int termFrequency(const TermEntry* term,
                                   unsigned int documentId);
 
-// Adds one to the occurrence count of a term for a docId.
-// May resize postingList if the docId is not already present.
-// Returns true if there is no memory left, false otherwise.
-static bool addOneToTermEntry(TermEntry* term, unsigned int docId);
-
 // Adds a new TermEntry (must alredy be allocated) to the vocabulary.
 static Vocabulary* addNewTermEntry(Vocabulary* vocabulary, TermEntry* term,
                                    wchar_t* token, unsigned int docId);
-
-// Allocates memory for a new TermEntry, changing the pointed pointer.
-// Returns false if there is not enough memory, true otherwise.
-static bool allocTerm(TermEntry** pTerm, unsigned int sizeToken);
 
 //See util/index.h
 int compareTermEntries(TermEntry* t1, TermEntry* t2){
@@ -56,7 +47,7 @@ Vocabulary* tryToAddToken(Vocabulary* vocabulary, wchar_t* token,
             wcslen(token) * sizeof(wchar_t), term);
   if (!term) {
     // Not found: allocate TermEntry structure
-    if (!allocTerm(&term, wcslen(token))) {
+    if (!initTerm(&term, token)) {
       pFreeTerm(term);
       term = NULL;
       *noMemory = true;
@@ -68,7 +59,7 @@ Vocabulary* tryToAddToken(Vocabulary* vocabulary, wchar_t* token,
     vocabulary = addNewTermEntry(vocabulary, term, token, docId);
   } else {
     // Found and not duplicate: just adding the docId to the list
-    *noMemory = addOneToTermEntry(term, docId);
+    *noMemory = addToTermEntry(1, term, docId);
   }
 
   return vocabulary;
@@ -93,6 +84,8 @@ Vocabulary* fpurgeIndex(FILE* output, Vocabulary* vocabulary) {
 
 // See util/index.h
 TermEntry* readTermEntry(FILE* input) {
+  if (!input) return NULL;  // Nothing to do
+
   wchar_t buffer[kBufferSize];
   memset(buffer, 0, kBufferSize * sizeof(wchar_t));  // Set to empty string
 
@@ -103,13 +96,12 @@ TermEntry* readTermEntry(FILE* input) {
   if (!nextToken(buffer, input, readStr)) return NULL;  // Parse error
 
   TermEntry* term;
-  if (!allocTerm(&term, wcslen(readStr))) {
+  if (!initTerm(&term, readStr)) {
     pFreeTerm(term);
     term = NULL;
     return NULL;
   }
-  wcscpy(term->token, readStr);
-  term->listLength = 1;
+  term->listLength = 0;
   term->listSize = kInitialPostingListSize;
 
   for (unsigned int i = 0; !endOfBuffer(buffer); ++i) {
@@ -127,8 +119,7 @@ TermEntry* readTermEntry(FILE* input) {
     }
 
     unsigned int occurrences = (unsigned int) wcstoul(readStr, NULL, 10);
-    addOneToTermEntry(term, docId);
-    term->postingList[i].occurrences = occurrences;
+    addToTermEntry(occurrences, term, docId);
   }
 
   return term;
@@ -205,22 +196,23 @@ static unsigned int termFrequency(const TermEntry* term,
   return 0;  // Not in the document
 }
 
-// See top of this file
-static bool addOneToTermEntry(TermEntry* term, unsigned int docId) {
+// See util/index.h
+bool addToTermEntry(int occurrence, TermEntry* term, unsigned int docId) {
   if (term->listLength >= term->listSize) {
-    unsigned int previousSize = term->listSize * sizeof(PostingListEntry);
+    unsigned int previousSize = term->listSize;
+    PostingListEntry* postingList = (PostingListEntry*)
+        pRealloc(term->postingList, previousSize * sizeof(PostingListEntry),
+                 previousSize * kSizeAugmentFactor * sizeof(PostingListEntry));
+    if (!postingList) return true;  // No memory left
+    term->postingList = postingList;
     term->listSize *= kSizeAugmentFactor;
-    term->postingList = (PostingListEntry*)
-                         pRealloc(term->postingList, previousSize,
-                                  term->listSize * sizeof(PostingListEntry));
-    if (!term->postingList) return true;  // No memory left
   }
 
   unsigned int docIdFound;
   // If the document id is in the posting list, just increment occurrences
   for (docIdFound = 0; docIdFound < term->listLength; ++docIdFound) {
     if (term->postingList[docIdFound].docId == docId){
-      term->postingList[docIdFound].occurrences++;
+      term->postingList[docIdFound].occurrences += occurrence;
       break;
     }
   }
@@ -229,7 +221,7 @@ static bool addOneToTermEntry(TermEntry* term, unsigned int docId) {
   if (docIdFound == term->listLength) {
     term->listLength++;
     term->postingList[term->listLength - 1].docId = docId;
-    term->postingList[term->listLength - 1].occurrences = 1;
+    term->postingList[term->listLength - 1].occurrences = occurrence;
   }
 
   return false;
@@ -253,19 +245,24 @@ static Vocabulary* addNewTermEntry(Vocabulary* vocabulary, TermEntry* term,
 }
 
 // See top of this file
-static bool allocTerm(TermEntry** pTerm, unsigned int sizeToken) {
+bool initTerm(TermEntry** pTerm, wchar_t* token) {
   *pTerm = (TermEntry*) pMalloc(sizeof(TermEntry));
   if (!*pTerm) return false;
 
   (*pTerm)->token = NULL;
   (*pTerm)->postingList = NULL;
 
-  (*pTerm)->token = (wchar_t*) pMalloc(sizeof(wchar_t) * (sizeToken + 1));
+  (*pTerm)->token = (wchar_t*) pMalloc(sizeof(wchar_t) * (wcslen(token) + 1));
   if (!(*pTerm)->token) return false;
+  wcscpy((*pTerm)->token, token);
 
   (*pTerm)->postingList = (PostingListEntry*) pMalloc(sizeof(PostingListEntry)
                                                   * kInitialPostingListSize);
   if (!(*pTerm)->postingList) return false;
+  memset((*pTerm)->postingList, 0, sizeof(PostingListEntry) * kInitialPostingListSize);
+
+  (*pTerm)->listLength = 0;
+  (*pTerm)->listSize = kInitialPostingListSize;
 
   return true;
 }

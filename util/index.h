@@ -36,6 +36,11 @@ typedef enum {
 // A TermEntry is a hash table itself (see uthash doc)
 typedef TermEntry Vocabulary;
 
+// Adds one to the occurrence count of a term for a docId.
+// May resize postingList if the docId is not already present.
+// Returns true if there is no memory left, false otherwise.
+bool addToTermEntry(int occcurence, TermEntry* term, unsigned int docId);
+
 // Compares the key of each TermEntry, allowing to sort them.
 // Returns positive value if t1 > t2, negative value if t1 < t2, 0 if t1 == t2.
 int compareTermEntries(TermEntry* t1, TermEntry* t2);
@@ -65,5 +70,10 @@ void fprintTerm(FILE* output, const TermEntry* t, TermPrintMode printMode);
 // Does not call pFree for NULL pointers.
 // CAUTION: does NOT remove the token pointer from Vocabulary, you MUST do it!
 void pFreeTerm(TermEntry* t);
+
+// Allocates memory for a new TermEntry, changing the pointed pointer.
+// Sets the token to token.
+// Returns false if there is not enough memory, true otherwise.
+bool initTerm(TermEntry** pTerm, wchar_t* token);
 
 #endif  // CONSTRUCT_TOKEN_H_
